@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steganography with Matrix Encoding</title>
+    <script src="matrix_stego.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h2>Image Steganography</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <input type="text" id="textInput" placeholder="Enter text to hide">
+    <button onclick="embedMessage()">Embed</button>
+    <button onclick="extractMessage()" id="extractButton">Extract</button>
+    <canvas id="canvas"></canvas>
+    <a id="download" download="stego_image.png">Download Image</a>
+    <div id="output"></div>
+    <script>
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h2 {
+            margin-top: 20px;
+        }
+        input {
+            margin: 10px;
+            padding: 5px;
+        }
+        button {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        canvas {
+            margin: 20px;
+            border: 1px solid #ddd;
+        }
+        #output {
+            margin: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            display: inline-block;
+        }
