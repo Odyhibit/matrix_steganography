@@ -3,21 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Steganography with Matrix Encoding</title>
-    <script src="matrix_stego.js"></script>
+    <title>Neo Hide - Web Steganography Tool</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h2>Image Steganography</h2>
-    <input type="file" id="imageInput" accept="image/*">
-    <input type="text" id="textInput" placeholder="Enter text to hide">
-    <button onclick="embedMessage()">Embed</button>
-    <button onclick="extractMessage()" id="extractButton">Extract</button>
-    <canvas id="canvas"></canvas>
-    <a id="download" download="stego_image.png">Download Image</a>
-    <div id="output"></div>
-    <script>
+    <div class="container">
+        <h1>Neo Hide - Web Steganography Tool</h1>
 
-    </script>
+        <div class="tabs">
+            <button class="tab active" onclick="openTab(event, 'embedTab')">Embed Message</button>
+            <button class="tab" onclick="openTab(event, 'extractTab')">Extract Message</button>
+            <button class="tab" onclick="openTab(event, 'compareTab')">Compare Images</button>
+        </div>
+
+        <!-- Embed Tab -->
+        <div id="embedTab" class="tab-content active">
+            <div class="form-group">
+                <label for="embedText">Message to Hide:</label>
+                <textarea id="embedText" rows="5" placeholder="Enter text to hide"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="coverImage">Cover Image:</label>
+                <input type="file" id="coverImage" accept="image/*">
+                <div class="preview-container">
+                    <img id="coverPreview" class="hidden">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="bitsPerBlock">Bits per Block:</label>
+                <input type="number" id="bitsPerBlock" value="7" min="1" max="20">
+                <button id="maxBlockSizeBtn" type="button">Use Maximum Block Size</button>
+            </div>
+
+            <button id="embedBtn" type="button">Embed Message</button>
+
+            <div class="progress-container hidden" id="embedProgressContainer">
+                <div class="progress-bar" id="embedProgress">0%</div>
+            </div>
+
+            <div class="result-container hidden" id="embedResult">
+                <h3>Steganographic Image</h3>
+                <p id="embedMessage"></p>
+                <div class="preview-container">
+                    <img id="stegoPreview">
+                </div>
+                <button id="downloadStegoBtn" type="button">Download Image</button>
+            </div>
+        </div>
+
+        <!-- Extract Tab -->
+        <div id="extractTab" class="tab-content">
+            <div class="form-group">
+                <label for="stegoImage">Stego Image:</label>
+                <input type="file" id="stegoImage" accept="image/*">
+                <div class="preview-container">
+                    <img id="stegoExtractPreview" class="hidden">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="extractBitsPerBlock">Bits per Block:</label>
+                <input type="number" id="extractBitsPerBlock" value="7" min="1" max="20">
+            </div>
+
+            <button id="extractBtn" type="button">Extract Message</button>
+
+            <div class="progress-container hidden" id="extractProgressContainer">
+                <div class="progress-bar" id="extractProgress">0%</div>
+            </div>
+
+            <div class="result-container hidden" id="extractResult">
+                <h3>Extracted Message</h3>
+                <textarea id="extractedText" rows="5" readonly></textarea>
+            </div>
+        </div>
+
+        <!-- Compare Tab -->
+        <div id="compareTab" class="tab-content">
+            <div class="form-group">
+                <label for="image1">First Image:</label>
+                <input type="file" id="image1" accept="image/*">
+                <div class="preview-container">
+                    <img id="image1Preview" class="hidden">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="image2">Second Image:</label>
+                <input type="file" id="image2" accept="image/*">
+                <div class="preview-container">
+                    <img id="image2Preview" class="hidden">
+                </div>
+            </div>
+
+            <button id="compareBtn" type="button">Compare Images</button>
+
+            <div id="compareResult" class="hidden"></div>
+        </div>
+    </div>
+
+    <script src="matrix_stego.js"></script>
 </body>
 </html>
