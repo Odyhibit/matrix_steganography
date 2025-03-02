@@ -105,7 +105,7 @@
             padding: 15px;
             background-color: #f9f9f9;
             border-radius: 4px;
-            border-left: 4px solid #4CAF50;
+            border-left: 4px solid #1a252f;
         }
         .hidden {
             display: none;
@@ -119,7 +119,7 @@
         .progress-bar {
             width: 0%;
             height: 20px;
-            background-color: #4CAF50;
+            background-color: #1a252f;
             border-radius: 4px;
             text-align: center;
             line-height: 20px;
