@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Light Bulb Demonstration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        .bulbs {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .bulb {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .bulb-image {
+            width: 80px;
+            height: 120px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: background-image 0.3s ease;
+        }
+        .bulb-off {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 160"><path d="M40 120h20v20H40z" fill="%23B8B8B8"/><path d="M50 10c-22.1 0-40 17.9-40 40 0 17.6 12 32.8 28 37.6v20.4c0 6.6 5.4 12 12 12s12-5.4 12-12V87.6c16-4.8 28-20 28-37.6 0-22.1-17.9-40-40-40z" fill="%23DADADA" stroke="%23B8B8B8" stroke-width="2"/></svg>');
+        }
+        .bulb-on {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 160"><path d="M40 120h20v20H40z" fill="%23B8B8B8"/><path d="M50 10c-22.1 0-40 17.9-40 40 0 17.6 12 32.8 28 37.6v20.4c0 6.6 5.4 12 12 12s12-5.4 12-12V87.6c16-4.8 28-20 28-37.6 0-22.1-17.9-40-40-40z" fill="%23FFD700" stroke="%23E6B800" stroke-width="2"/></svg>');
+        }
+        .label {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .switch-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .switch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .switch-label {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .explanation {
+            margin-top: 40px;
+            text-align: left;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+        .state {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .states-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+        }
+        .reset-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .reset-btn:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <h1>Binary Light Bulb Demonstration</h1>
+
+    <div class="container">
+        <div>
+            <h2>Light Bulbs (Secret Message Bits)</h2>
+            <div class="bulbs">
+
+                <div class="bulb">
+                    <div class="bulb-image bulb-off" id="bulb3"></div>
+                    <div class="label">100</div>
+                </div>
+                <div class="bulb">
+                    <div class="bulb-image bulb-off" id="bulb2"></div>
+                    <div class="label">010</div>
+                </div>
+                <div class="bulb">
+                    <div class="bulb-image bulb-off" id="bulb1"></div>
+                    <div class="label">001</div>
+                </div>
+            </div>
+
+            <div class="states-container">
+                <div class="state">Bulbs (secret): <span id="bulbsState">000</span></div>
+                <div class="state">Switches (data): <span id="switchesState">0000000</span></div>
+            </div>
+        </div>
+
+        <div>
+            <h2>Light Switches (Data Bits)</h2>
+            <div class="switch-container">
+                <div class="switch">
+                    <div class="switch-label">001</div>
+                    <label class="toggle">
+                        <input type="checkbox" id="switch1">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch">
+                    <div class="switch-label">010</div>
+                    <label class="toggle">
+                        <input type="checkbox" id="switch2">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch">
+                    <div class="switch-label">011</div>
+                    <label class="toggle">
+                        <input type="checkbox" id="switch3">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch">
+                    <div class="switch-label">100</div>
+                    <label class="toggle">
+                        <input type="checkbox" id="switch4">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch">
+                    <div class="switch-label">101</div>
+                    <label class="toggle">
+                        <input type="checkbox" id="switch5">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch">
+                    <div class="switch-label">110</div>
+                    <label class="toggle">
+                        <input type="checkbox" id="switch6">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch">
+                    <div class="switch-label">111</div>
+                    <label class="toggle">
+                        <input type="checkbox" id="switch7">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <button class="reset-btn" id="resetBtn">Reset All</button>
+        </div>
+
+        <div class="explanation">
+            <h3>How It Works</h3>
+            <p>This demonstration shows a simple error correction code using binary operations:</p>
+            <p>The key to this is the fact any combination of bulbs can be created by flipping just one switch.</p>
+            <ul>
+                <li>The light switches represent the cover data bits (the LSB of the image pixels)</li>
+                <li>The light bulbs represent the secret message bits.</li>
+                <li>Each switch is labeled with a binary number (001 through 111)</li>
+                <li>When you flip a switch, it toggles the corresponding light bulb(s) based on the binary pattern</li>
+                <li>For example, switch "011" will toggle both the 001 and 010 bulbs</li>
+                <li>The final state of the bulbs stores three secret bits, while only changing one cover bit.</li>
+                <li>This demo uses a block size of three. Some real world stego might use block sizes of 7-15.</li>
+                <li>A block size of 7 bits(bulbs) would require 127 bits(switches) but would hide 7 bits for each cover bit changed.</li>
+                <li>A block size of 15 bits(bulbs) would require 32767 bits (switches) but would hide 15 bits for each cover bit changed.</li>
+
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const bulbs = [
+            document.getElementById('bulb1'),
+            document.getElementById('bulb2'),
+            document.getElementById('bulb3')
+        ];
+
+        const switches = [
+            document.getElementById('switch1'), // 001
+            document.getElementById('switch2'), // 010
+            document.getElementById('switch3'), // 011
+            document.getElementById('switch4'), // 100
+            document.getElementById('switch5'), // 101
+            document.getElementById('switch6'), // 110
+            document.getElementById('switch7')  // 111
+        ];
+
+        const bulbsState = document.getElementById('bulbsState');
+        const switchesState = document.getElementById('switchesState');
+        const resetBtn = document.getElementById('resetBtn');
+
+        let state = [0, 0, 0]; // Initial state for all bulbs (off)
+
+        // Define which bulbs each switch controls
+        const switchToBulbs = [
+            [0],          // 001 controls bulb 1
+            [1],          // 010 controls bulb 2
+            [0, 1],       // 011 controls bulbs 1 and 2
+            [2],          // 100 controls bulb 3
+            [0, 2],       // 101 controls bulbs 1 and 3
+            [1, 2],       // 110 controls bulbs 2 and 3
+            [0, 1, 2]     // 111 controls all bulbs
+        ];
+
+        // Update the visual state of the bulbs
+        function updateBulbs() {
+            for (let i = 0; i < 3; i++) {
+                if (state[i] === 1) {
+                    bulbs[i].className = 'bulb-image bulb-on';
+                } else {
+                    bulbs[i].className = 'bulb-image bulb-off';
+                }
+            }
+            bulbsState.textContent = `${state[2]}${state[1]}${state[0]}`;
+        }
+
+        // Update the display of the switches state
+        function updateSwitchesState() {
+            let switchState = '';
+            for (let i = 0; i < switches.length; i++) {
+                switchState += switches[i].checked ? '1' : '0';
+            }
+            switchesState.textContent = switchState;
+        }
+
+        // Toggle bulbs based on switch state
+        function toggleBulbs(switchIndex) {
+            const affectedBulbs = switchToBulbs[switchIndex];
+            for (const bulbIndex of affectedBulbs) {
+                state[bulbIndex] = 1 - state[bulbIndex]; // Toggle between 0 and 1
+            }
+            updateBulbs();
+            updateSwitchesState();
+        }
+
+        // Add event listeners to switches
+        switches.forEach((switchElement, index) => {
+            switchElement.addEventListener('change', () => {
+                toggleBulbs(index);
+                // No longer resetting the switch - it stays in whatever position the user set
+            });
+        });
+
+        // Reset button functionality
+        resetBtn.addEventListener('click', () => {
+            state = [0, 0, 0];
+            switches.forEach(switchElement => {
+                switchElement.checked = false;
+            });
+            updateBulbs();
+            updateSwitchesState();
+        });
+
+        // Initialize the display
+        updateBulbs();
+        updateSwitchesState();
+    </script>
+</body>
+</html>
