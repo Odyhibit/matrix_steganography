@@ -138,7 +138,7 @@
             justify-content: space-around;
             margin-top: 30px;
         }
-        .reset-btn {
+        .reset-btn, .load-data-btn {
             margin-top: 20px;
             padding: 10px 20px;
             background-color: #2c3e50;
@@ -148,7 +148,7 @@
             cursor: pointer;
             font-size: 16px;
         }
-        .reset-btn:hover {
+        .reset-btn:hover, .load-data-btn:hover {
             background-color: #0c1e30;
         }
     </style>
@@ -156,27 +156,22 @@
 <body>
     <div class="container">
 
-    <h1>Binary Light Bulb Demonstration</h1>
-
-
+        <h1>Binary Light Bulb Demonstration</h1>
         <div>
             <h2>Light Bulbs (Secret Message Bits)</h2>
+            <div class="state" id="targetSecret">000</div>
             <div class="bulbs outline">
-
                 <div class="bulb">
-                    <div class="label">100</div>
+                    <div class="label">100(4)</div>
                     <div class="bulb-image bulb-off" id="bulb3"></div>
-
                 </div>
                 <div class="bulb">
-                    <div class="label">010</div>
+                    <div class="label">010(2)</div>
                     <div class="bulb-image bulb-off" id="bulb2"></div>
-
                 </div>
                 <div class="bulb">
-                    <div class="label">001</div>
+                    <div class="label">001(1)</div>
                     <div class="bulb-image bulb-off" id="bulb1"></div>
-
                 </div>
             </div>
 
@@ -190,57 +185,58 @@
             <h2>Light Switches (Data Bits)</h2>
             <div class="switch-container outline">
                 <div class="switch">
-                    <div class="switch-label">001</div>
+                    <div class="switch-label">111(7)</div>
                     <label class="toggle">
-                        <input type="checkbox" id="switch1">
+                        <input type="checkbox" id="switch7">
                         <span class="slider"></span>
                     </label>
                 </div>
                 <div class="switch">
-                    <div class="switch-label">010</div>
-                    <label class="toggle">
-                        <input type="checkbox" id="switch2">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="switch">
-                    <div class="switch-label">011</div>
-                    <label class="toggle">
-                        <input type="checkbox" id="switch3">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="switch">
-                    <div class="switch-label">100</div>
-                    <label class="toggle">
-                        <input type="checkbox" id="switch4">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="switch">
-                    <div class="switch-label">101</div>
-                    <label class="toggle">
-                        <input type="checkbox" id="switch5">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="switch">
-                    <div class="switch-label">110</div>
+                    <div class="switch-label">110(6)</div>
                     <label class="toggle">
                         <input type="checkbox" id="switch6">
                         <span class="slider"></span>
                     </label>
                 </div>
                 <div class="switch">
-                    <div class="switch-label">111</div>
+                    <div class="switch-label">101(5)</div>
                     <label class="toggle">
-                        <input type="checkbox" id="switch7">
+                        <input type="checkbox" id="switch5">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch">
+                    <div class="switch-label">100(4)</div>
+                    <label class="toggle">
+                        <input type="checkbox" id="switch4">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch">
+                    <div class="switch-label">011(3)</div>
+                    <label class="toggle">
+                        <input type="checkbox" id="switch3">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch">
+                    <div class="switch-label">010(2)</div>
+                    <label class="toggle">
+                        <input type="checkbox" id="switch2">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch">
+                    <div class="switch-label">001(1)</div>
+                    <label class="toggle">
+                        <input type="checkbox" id="switch1">
                         <span class="slider"></span>
                     </label>
                 </div>
             </div>
 
             <button class="reset-btn" id="resetBtn">Reset All</button>
+            <button class="load-data-btn" id="loadNextDataBtn">Load Next Data</button>
         </div>
 
         <div class="explanation">
@@ -257,7 +253,6 @@
                 <li>This demo uses a block size of three. Some real world stego might use block sizes of 7-15.</li>
                 <li>A block size of 7 bits(bulbs) would require 127 bits(switches) but would hide 7 bits for each cover bit changed.</li>
                 <li>A block size of 15 bits(bulbs) would require 32767 bits (switches) but would hide 15 bits for each cover bit changed.</li>
-
             </ul>
         </div>
         <a href="index.html">Back to Matrix Stego</a>
@@ -282,73 +277,142 @@
 
         const bulbsState = document.getElementById('bulbsState');
         const switchesState = document.getElementById('switchesState');
+        const targetSecret = document.getElementById('targetSecret');
         const resetBtn = document.getElementById('resetBtn');
+        const loadNextDataBtn = document.getElementById('loadNextDataBtn');
 
         let state = [0, 0, 0]; // Initial state for all bulbs (off)
 
-        // Define which bulbs each switch controls
-        const switchToBulbs = [
-            [0],          // 001 controls bulb 1
-            [1],          // 010 controls bulb 2
-            [0, 1],       // 011 controls bulbs 1 and 2
-            [2],          // 100 controls bulb 3
-            [0, 2],       // 101 controls bulbs 1 and 3
-            [1, 2],       // 110 controls bulbs 2 and 3
-            [0, 1, 2]     // 111 controls all bulbs
-        ];
 
-        // Update the visual state of the bulbs
-        function updateBulbs() {
-            for (let i = 0; i < 3; i++) {
-                if (state[i] === 1) {
-                    bulbs[i].className = 'bulb-image bulb-on';
-                } else {
-                    bulbs[i].className = 'bulb-image bulb-off';
-                }
-            }
-            bulbsState.textContent = `${state[2]}${state[1]}${state[0]}`;
+// Set target secret to a random 3-bit value
+function setTargetSecret() {
+    // Generate a random 3-bit number (between 0 and 7)
+    let target = Math.floor(Math.random() * 8).toString(2).padStart(3, '0');
+    targetSecret.textContent = target;
+
+    // Set bulbs based on the random target
+    //updateBulbsBasedOnSecret(target);
+}
+
+// Update bulbs based on the target secret
+function updateBulbsBasedOnSecret(target) {
+    // Convert the target binary string (e.g., '101') into bulb states (0 or 1)
+    state = target.split('').map(bit => parseInt(bit));
+
+    // Update bulb states
+    updateBulbs();
+}
+
+// Update the visual state of the bulbs
+function updateBulbs() {
+    for (let i = 0; i < 3; i++) {
+        if (state[i] === 1) {
+            bulbs[i].className = 'bulb-image bulb-on';
+        } else {
+            bulbs[i].className = 'bulb-image bulb-off';
         }
+    }
+    bulbsState.textContent = `${state[2]}${state[1]}${state[0]}`;
+}
 
-        // Update the display of the switches state
-        function updateSwitchesState() {
-            let switchState = '';
-            for (let i = 0; i < switches.length; i++) {
-                switchState += switches[i].checked ? '1' : '0';
-            }
-            switchesState.textContent = switchState;
-        }
+// Update the display of the switches state
+function updateSwitchesState() {
+    let switchState = '';
+    for (let i = 0; i < switches.length; i++) {
+        switchState += switches[i].checked ? '1' : '0';
+    }
+    switchState = switchState.split('').reverse().join('');
+    switchesState.textContent = switchState;
+}
 
-        // Toggle bulbs based on switch state
-        function toggleBulbs(switchIndex) {
-            const affectedBulbs = switchToBulbs[switchIndex];
-            for (const bulbIndex of affectedBulbs) {
-                state[bulbIndex] = 1 - state[bulbIndex]; // Toggle between 0 and 1
-            }
-            updateBulbs();
-            updateSwitchesState();
-        }
-
-        // Add event listeners to switches
-        switches.forEach((switchElement, index) => {
-            switchElement.addEventListener('change', () => {
-                toggleBulbs(index);
-                // No longer resetting the switch - it stays in whatever position the user set
-            });
-        });
-
-        // Reset button functionality
-        resetBtn.addEventListener('click', () => {
-            state = [0, 0, 0];
-            switches.forEach(switchElement => {
-                switchElement.checked = false;
-            });
-            updateBulbs();
-            updateSwitchesState();
-        });
-
-        // Initialize the display
-        updateBulbs();
+// Add event listeners to switches
+switches.forEach((switchElement, index) => {
+    switchElement.addEventListener('change', () => {
+        toggleBulbs(index);
         updateSwitchesState();
+    });
+});
+
+// Function to toggle bulbs based on switch states
+function toggleBulbs(switchIndex) {
+    const affectedBulbs = switchToBulbs[switchIndex];
+    for (const bulbIndex of affectedBulbs) {
+        state[bulbIndex] = 1 - state[bulbIndex]; // Toggle between 0 and 1
+    }
+    updateBulbs();
+    updateSwitchesState();
+}
+
+// Reset button functionality
+resetBtn.addEventListener('click', () => {
+    state = [0, 0, 0];
+    switches.forEach(switchElement => {
+        switchElement.checked = false;
+    });
+    updateBulbs();
+    updateSwitchesState();
+});
+
+// Load next data button functionality
+loadNextDataBtn.addEventListener('click', () => {
+    // Generate a new random 3-bit secret and update the bulbs accordingly
+    setTargetSecret();
+
+    // Randomize switch states
+    randomizeSwitches();
+    updateSwitchesState();
+});
+
+// Function to randomize switch states (for initial state)
+function randomizeSwitches() {
+    let randomBinary = '';
+    for (let i = 0; i < 7; i++) {
+        let randomBit = Math.random() < 0.5 ? '0' : '1';
+        switches[i].checked = randomBit === '1';
+        randomBinary += randomBit;
+    }
+
+    // Ensure that the random switches result in a state that matches the new target secret.
+    // This step ensures the switches actually change the bulb state.
+    applySwitchesToBulbs();
+    switchesState.textContent = randomBinary;
+}
+
+// Apply switches' states to bulbs (ensuring the bulbs' state matches the random switches)
+function applySwitchesToBulbs() {
+    // Reset the bulb states first
+    state = [0, 0, 0];
+
+    switches.forEach((switchElement, index) => {
+        if (switchElement.checked) {
+            // Toggle the bulbs based on which bulbs are affected by the switch
+            const affectedBulbs = switchToBulbs[index];
+            affectedBulbs.forEach(bulbIndex => {
+                state[bulbIndex] = 1 - state[bulbIndex]; // Toggle between 0 and 1
+            });
+        }
+    });
+
+    // Update the bulbs to match the switch states
+    updateBulbs();
+    updateSwitchesState();
+}
+
+// Define which bulbs each switch controls
+const switchToBulbs = [
+    [0],          // 001 controls bulb 1
+    [1],          // 010 controls bulb 2
+    [0, 1],       // 011 controls bulbs 1 and 2
+    [2],          // 100 controls bulb 3
+    [0, 2],       // 101 controls bulbs 1 and 3
+    [1, 2],       // 110 controls bulbs 2 and 3
+    [0, 1, 2]     // 111 controls all bulbs
+];
+
+// Initialize the display
+setTargetSecret();
+updateSwitchesState();
+
     </script>
 </body>
 </html>
