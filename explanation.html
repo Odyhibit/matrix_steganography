@@ -159,7 +159,10 @@
         <h1>Binary Light Bulb Demonstration</h1>
         <div>
             <h2>Light Bulbs (Secret Message Bits)</h2>
-            <div class="state" id="targetSecret">000</div>
+            <div class="state">
+                <div id="targetSecret"></div>
+            </div>
+
             <div class="bulbs outline">
                 <div class="bulb">
                     <div class="label">100(4)</div>
@@ -288,7 +291,7 @@
 function setTargetSecret() {
     // Generate a random 3-bit number (between 0 and 7)
     let target = Math.floor(Math.random() * 8).toString(2).padStart(3, '0');
-    targetSecret.textContent = target;
+    targetSecret.textContent = "Next 3 message bits: " + target;
 
     // Set bulbs based on the random target
     //updateBulbsBasedOnSecret(target);
@@ -410,8 +413,8 @@ const switchToBulbs = [
 ];
 
 // Initialize the display
-setTargetSecret();
-updateSwitchesState();
+// setTargetSecret();
+// updateSwitchesState();
 
     </script>
 </body>
