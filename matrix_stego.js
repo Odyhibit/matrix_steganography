@@ -658,7 +658,7 @@ async function calculateMaxBlockSize() {
     const { width, height } = imgData;
     const payloadBits = buildTextPayloadBits(text);
     const highCapacity = document.getElementById('highCapacityEmbed').checked;
-    const colorChannels = highCapacity ? 4 : 3;
+    const colorChannels = 3;
     const bitsPerChannel = highCapacity ? BITS_PER_CHANNEL_HIGH : BITS_PER_CHANNEL_STANDARD;
     const maxBits = findLargestBlockSize(payloadBits.length, width, height, colorChannels, bitsPerChannel);
 
