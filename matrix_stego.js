@@ -10,7 +10,7 @@ const TEXT_BITS_PER_SYMBOL = 7;
 const MAX_BITS_PER_BLOCK = 24;
 const WARN_BITS_PER_BLOCK = 20;
 const BITS_PER_CHANNEL_STANDARD = 1;
-const BITS_PER_CHANNEL_HIGH = 7;
+const BITS_PER_CHANNEL_HIGH = 7; // high-capacity uses RGB only to avoid premultiplied alpha issues
 
 // Tab functionality
 function openTab(evt, tabName) {
@@ -377,7 +377,7 @@ async function embedMessage() {
   try {
     const imgData = await getImageData(coverImg);
     const { width, height, data } = imgData;
-    const colorChannels = highCapacity ? 4 : 3;
+    const colorChannels = 3;
     const bitsPerChannel = highCapacity ? BITS_PER_CHANNEL_HIGH : BITS_PER_CHANNEL_STANDARD;
     const payloadBits = buildTextPayloadBits(text);
 
@@ -393,9 +393,6 @@ async function embedMessage() {
     let bitCursor = 0;
     for (let i = 0; i < data.length; i += 4) {
       const channels = [data[i], data[i + 1], data[i + 2]];
-      if (highCapacity) {
-        channels.push(data[i + 3]);
-      }
       for (const value of channels) {
         for (let bit = 0; bit < bitsPerChannel; bit++) {
           coverBits[bitCursor++] = (value >> bit) & 1;
@@ -434,16 +431,13 @@ async function embedMessage() {
     progressBar.textContent = '80%';
 
     let lsbIndex = 0;
-    const modifiedData = new Uint8ClampedArray(data);
-    for (let i = 0; i < modifiedData.length; i += 4) {
+    const modifiedData = new Uint8ClampedArray(data.length);
+    for (let i = 0; i < data.length; i += 4) {
       const channels = [
-        { idx: i, value: modifiedData[i] },
-        { idx: i + 1, value: modifiedData[i + 1] },
-        { idx: i + 2, value: modifiedData[i + 2] }
+        { idx: i, value: data[i] },
+        { idx: i + 1, value: data[i + 1] },
+        { idx: i + 2, value: data[i + 2] }
       ];
-      if (highCapacity) {
-        channels.push({ idx: i + 3, value: modifiedData[i + 3] });
-      }
       for (const ch of channels) {
         let newVal = ch.value & 0x80;
         for (let bit = 0; bit < bitsPerChannel; bit++) {
@@ -452,6 +446,8 @@ async function embedMessage() {
         }
         modifiedData[ch.idx] = newVal;
       }
+      // Force opaque alpha to avoid premultiplication issues and drop alpha from payload
+      modifiedData[i + 3] = 255;
     }
 
     const canvas = document.createElement('canvas');
@@ -525,9 +521,6 @@ async function extractMessage() {
     const bitsPerChannel = highCapacity ? BITS_PER_CHANNEL_HIGH : BITS_PER_CHANNEL_STANDARD;
     for (let i = 0; i < data.length; i += 4) {
       const channels = [data[i], data[i + 1], data[i + 2]];
-      if (highCapacity) {
-        channels.push(data[i + 3]);
-      }
       for (const value of channels) {
         for (let bit = 0; bit < bitsPerChannel; bit++) {
           stegoBits.push((value >> bit) & 1);

@@ -32,7 +32,7 @@ TEXT_BITS_PER_SYMBOL = 7
 @click.option('-o', '--output', type=click.Path(dir_okay=False, writable=True, path_type=Path),
               help="Optional file to write extracted binary payloads.")
 @click.option('--high-capacity', '-H', is_flag=True,
-              help="Use RGBA and the lower 7 bits of each channel (28 bits/pixel) for maximum payload.")
+              help="Use RGB and the lower 7 bits of each channel (21 bits/pixel) for maximum payload.")
 def main(text, file, cover, stego, bits, maximum, embed, extract, diff, output, high_capacity):
     payload_bits: Optional[List[int]] = None
     payload_kind: Optional[str] = None
@@ -66,7 +66,7 @@ def main(text, file, cover, stego, bits, maximum, embed, extract, diff, output, 
         if not payload_bits:
             print("Embedding requires either --text or --file input.")
             sys.exit(1)
-        mode_label = "high-capacity (RGBA, 28 bits/pixel)" if high_capacity else "standard (RGB, 3 bits/pixel)"
+        mode_label = "high-capacity (RGB, 21 bits/pixel)" if high_capacity else "standard (RGB, 3 bits/pixel)"
         print(f"Embedding {payload_kind} payload ({payload_display}) into {stego} [{mode_label}].")
         stego_image(cover, payload_bits, stego, bits, high_capacity=high_capacity)
 
@@ -274,11 +274,9 @@ def find_largest_block_size(total_bits_to_hide: int,
 
 def get_max_block(cover_image: str, total_bits: int, high_capacity: bool = False) -> int:
     cover = Image.open(cover_image)
-    if high_capacity:
-        cover = cover.convert("RGBA")
     width = cover.width
     height = cover.height
-    channels = 4 if high_capacity else len(cover.getbands())
+    channels = 3 if high_capacity else len(cover.getbands())
     bits_per_channel = 7 if high_capacity else 1
     return find_largest_block_size(total_bits, width, height, channels, bits_per_channel)
 
@@ -372,10 +370,10 @@ def unhide_block(matrix, stego):
 def load_image_to_one_d(filename: str, high_capacity: bool = False):
     img = Image.open(filename)
     if high_capacity:
-        img = img.convert("RGBA")
+        img = img.convert("RGB")
     width, height = img.width, img.height
     pixels = list(img.getdata())
-    channels = 4 if high_capacity else min(3, len(img.getbands()))
+    channels = 3 if high_capacity else min(3, len(img.getbands()))
     flat = []
     for pixel in pixels:
         flat.extend(list(pixel)[:channels])
@@ -383,8 +381,7 @@ def load_image_to_one_d(filename: str, high_capacity: bool = False):
 
 
 def save_file(filename: str, width: int, height: int, stego_file: []):
-    mode = "RGBA" if len(stego_file[0]) == 4 else "RGB"
-    output_img = Image.new(mode, (width, height))
+    output_img = Image.new("RGB", (width, height))
     output_img.putdata(stego_file)
     with open(filename, "wb") as file_out:
         output_img.save(file_out)
@@ -432,7 +429,7 @@ def stego_image(cover_filename: str, payload_bits: List[int], stego_filename: st
         if high_capacity:
             bits_for_channel = cover_bits[bit_cursor:bit_cursor + 7]
             if len(bits_for_channel) < 7:
-                bits_for_channel = bits_for_channel + [0] * (7 - len(bits_for_channel))
+                bits_for_channel += [0] * (7 - len(bits_for_channel))
             bit_cursor += 7
             top_bit = original & 0x80
             new_val = top_bit
