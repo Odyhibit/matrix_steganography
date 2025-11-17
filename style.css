@@ -58,6 +58,9 @@ label {
     margin-bottom: 5px;
     font-weight: bold;
 }
+label input[type="checkbox"] {
+    margin-right: 5px;
+}
 textarea, input[type="text"], input[type="number"], input[type="file"] {
     padding: 10px;
     border: 1px solid #ddd;
