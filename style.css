@@ -362,7 +362,22 @@ button#embedBtn:hover, button#extractBtn:hover, button#compareBtn:hover {
     padding: 1rem;
 }
 
-.capacity-badge {
+.action-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 0.5rem;
+}
+
+.status-msg {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    min-height: 1.2em;
+}
+
+.status-msg.ok { color: var(--green); }
+.status-msg.err { color: var(--danger); }
     display: inline-block;
     font-family: var(--mono);
     font-size: 0.7rem;

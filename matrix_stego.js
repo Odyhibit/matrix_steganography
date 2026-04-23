@@ -352,20 +352,27 @@ async function embedMessage() {
   const text = document.getElementById('embedText').value;
   let bitsPerBlock = parseInt(document.getElementById('bitsPerBlock').value, 10);
   const highCapacity = document.getElementById('highCapacityEmbed').checked;
+  const status = document.getElementById('embedStatus');
 
   if (!coverImg.src || !text) {
-    alert('Please provide both a cover image and text to hide.');
+    status.textContent = 'provide both an image and a message first';
+    status.className = 'status-msg err';
     return;
   }
 
   if (Number.isNaN(bitsPerBlock)) {
-    alert('Bits per block must be a number.');
+    status.textContent = 'bits per block must be a number';
+    status.className = 'status-msg err';
     return;
   }
   const requestedBits = bitsPerBlock;
   bitsPerBlock = Math.min(Math.max(bitsPerBlock, 1), MAX_BITS_PER_BLOCK);
   if (requestedBits > WARN_BITS_PER_BLOCK) {
-    alert(`Block sizes above ${WARN_BITS_PER_BLOCK} can be slow. Using ${bitsPerBlock}.`);
+    status.textContent = `block sizes above ${WARN_BITS_PER_BLOCK} can be slow — using ${bitsPerBlock}`;
+    status.className = 'status-msg';
+  } else {
+    status.textContent = '';
+    status.className = 'status-msg';
   }
 
   document.getElementById('bitsPerBlock').value = bitsPerBlock;
@@ -382,7 +389,8 @@ async function embedMessage() {
     const payloadBits = buildTextPayloadBits(text);
 
     if (!checkSize(payloadBits.length, bitsPerBlock, width, height, colorChannels, bitsPerChannel)) {
-      alert('Not enough room in this image for that message with that block size. Reduce one or the other.');
+      status.textContent = 'image too small for this message at this block size';
+      status.className = 'status-msg err';
       document.getElementById('embedProgressContainer').classList.add('hidden');
       return;
     }
@@ -439,7 +447,8 @@ async function embedMessage() {
         { idx: i + 2, value: data[i + 2] }
       ];
       for (const ch of channels) {
-        let newVal = ch.value & 0x80;
+        const mask = ~((1 << bitsPerChannel) - 1) & 0xFF;
+        let newVal = ch.value & mask;
         for (let bit = 0; bit < bitsPerChannel; bit++) {
           const bitVal = lsbIndex < coverBits.length ? coverBits[lsbIndex++] : 0;
           newVal |= (bitVal & 1) << bit;
@@ -472,9 +481,12 @@ async function embedMessage() {
 
     progressBar.style.width = '100%';
     progressBar.textContent = '100%';
+    status.textContent = 'embedded successfully';
+    status.className = 'status-msg ok';
   } catch (error) {
     console.error('Error:', error);
-    alert('An error occurred: ' + error.message);
+    status.textContent = 'error: ' + error.message;
+    status.className = 'status-msg err';
   }
 }
 
@@ -483,20 +495,27 @@ async function extractMessage() {
   const stegoImg = document.getElementById('stegoExtractPreview');
   let bitsPerBlock = parseInt(document.getElementById('extractBitsPerBlock').value, 10);
   const highCapacity = document.getElementById('highCapacityExtract').checked;
+  const status = document.getElementById('extractStatus');
 
   if (!stegoImg.src) {
-    alert('Please provide a stego image.');
+    status.textContent = 'provide a stego image first';
+    status.className = 'status-msg err';
     return;
   }
 
   if (Number.isNaN(bitsPerBlock)) {
-    alert('Bits per block must be a number.');
+    status.textContent = 'bits per block must be a number';
+    status.className = 'status-msg err';
     return;
   }
   const requestedBits = bitsPerBlock;
   bitsPerBlock = Math.min(Math.max(bitsPerBlock, 1), MAX_BITS_PER_BLOCK);
   if (requestedBits > WARN_BITS_PER_BLOCK) {
-    alert(`Block sizes above ${WARN_BITS_PER_BLOCK} can be slow. Using ${bitsPerBlock}.`);
+    status.textContent = `block sizes above ${WARN_BITS_PER_BLOCK} can be slow — using ${bitsPerBlock}`;
+    status.className = 'status-msg';
+  } else {
+    status.textContent = '';
+    status.className = 'status-msg';
   }
   document.getElementById('extractBitsPerBlock').value = bitsPerBlock;
 
@@ -605,9 +624,12 @@ async function extractMessage() {
 
     progressBar.style.width = '100%';
     progressBar.textContent = '100%';
+    status.textContent = 'extracted successfully';
+    status.className = 'status-msg ok';
   } catch (error) {
     console.error('Error:', error);
-    alert('An error occurred: ' + error.message);
+    status.textContent = 'error: ' + error.message;
+    status.className = 'status-msg err';
   }
 }
 
@@ -627,7 +649,9 @@ async function compareImages() {
   const img2 = document.getElementById('image2Preview');
 
   if (!img1.src || !img2.src) {
-    alert('Please provide both images for comparison.');
+    const compareResult = document.getElementById('compareResult');
+    compareResult.textContent = 'provide both images first';
+    compareResult.classList.remove('hidden');
     return;
   }
 
@@ -639,7 +663,9 @@ async function compareImages() {
     compareResult.classList.remove('hidden');
   } catch (error) {
     console.error('Error:', error);
-    alert('An error occurred: ' + error.message);
+    const compareResult = document.getElementById('compareResult');
+    compareResult.textContent = 'error: ' + error.message;
+    compareResult.classList.remove('hidden');
   }
 }
 
@@ -647,9 +673,11 @@ async function compareImages() {
 async function calculateMaxBlockSize() {
   const coverImg = document.getElementById('coverPreview');
   const text = document.getElementById('embedText').value;
+  const status = document.getElementById('embedStatus');
 
   if (!coverImg.src || !text) {
-    alert('Please provide both a cover image and text to hide.');
+    status.textContent = 'provide both an image and a message first';
+    status.className = 'status-msg err';
     return;
   }
 
@@ -664,13 +692,16 @@ async function calculateMaxBlockSize() {
 
     if (maxBits > 0) {
       document.getElementById('bitsPerBlock').value = maxBits;
-      alert(`Using ${maxBits} bits per block. Block size is ${Math.pow(2, maxBits) - 1}`);
+      status.textContent = `block size set to ${maxBits} (${Math.pow(2, maxBits) - 1} cover bits per block)`;
+      status.className = 'status-msg ok';
     } else {
-      alert('The image is too small to hide this message.');
+      status.textContent = 'image is too small to hide this message';
+      status.className = 'status-msg err';
     }
   } catch (error) {
     console.error('Error:', error);
-    alert('An error occurred: ' + error.message);
+    status.textContent = 'error: ' + error.message;
+    status.className = 'status-msg err';
   }
 }
 
