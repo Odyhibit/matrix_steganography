@@ -310,6 +310,7 @@
             font-size: 0.65rem;
             top: 0.55rem;
         }
+        .hidden { display: none; }
 
         .explainer li strong {
             color: var(--text);
@@ -366,12 +367,64 @@
             margin-bottom: 0.5rem;
         }
 
-        .target-display span {
+        .intro-text {
+            margin-bottom: 1.5rem;
+            border-left: 3px solid var(--accent);
+            padding-left: 1.25rem;
+        }
+
+        .intro-text p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .intro-text p:last-child { margin-bottom: 0; }
+
+        .intro-text strong { color: var(--text); font-weight: 500; }
+        .intro-text em { color: var(--accent); font-style: normal; }
+
+        .hint {
+            font-size: 0.82rem !important;
+            color: var(--text-dim) !important;
+            font-family: var(--mono);
+            margin-top: 1rem !important;
+        }
+
+        .success-msg {
+            text-align: center;
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 0.75rem 0;
+            background: var(--green-dim);
             color: var(--green);
+            border: 1px solid rgba(104, 211, 145, 0.25);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .success-msg.already {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border-color: var(--border-bright);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .target-display span {
+            color: var(--accent);
             font-size: 1.1rem;
             font-weight: 700;
             letter-spacing: 0.2em;
         }
+
+        .target-display span.matched { color: var(--green); }
     </style>
 </head>
 <body>
@@ -387,6 +440,12 @@
         <!-- Interactive Demo -->
         <div class="section">
             <div class="section-title">Interactive Demo — Block Size 3</div>
+
+            <div class="intro-text">
+                <p>Imagine 7 pixel bits from an image — the <strong>switches</strong> below. Each switch is labeled with a binary number from 001 to 111. Flip a switch and watch which <strong>bulbs</strong> light up. Notice anything? The switch label tells you <em>exactly</em> which bulbs it affects — switch 011 flips bulbs 1 and 2, switch 101 flips bulbs 1 and 3. The label is the XOR mask.</p>
+                <p>Now here's the trick: given any starting switch state, you can always reach any target bulb pattern by flipping <strong>at most one switch</strong>. That one flip is how 3 secret bits get hidden inside 7 cover bits — changing just one pixel.</p>
+                <p class="hint">↓ Click "Load Next Data" to simulate reading 7 bits from an image. A 3-bit secret will appear above the bulbs. Your challenge: find the <em>single switch</em> that makes the bulbs match the target.</p>
+            </div>
 
             <div class="target-display" id="targetDisplay">
                 target bits: <span id="targetSecret">---</span>
@@ -429,6 +488,9 @@
                     <span class="chip-value" id="switchesState">0000000</span>
                 </div>
             </div>
+
+            <div id="successMsg" class="success-msg hidden">✓ encoded — 1 bit changed</div>
+            <div id="alreadyMsg" class="success-msg already hidden">✓ already correct — 0 bits changed</div>
 
             <div class="section-title" style="margin-top:1.5rem;">Light Switches — Cover Data Bits</div>
 
@@ -528,12 +590,40 @@
         const bulbsStateEl = document.getElementById('bulbsState');
         const switchesStateEl = document.getElementById('switchesState');
         const targetSecretEl = document.getElementById('targetSecret');
+        const successMsg = document.getElementById('successMsg');
+        const alreadyMsg = document.getElementById('alreadyMsg');
 
         const switchToBulbs = [
             [0], [1], [0,1], [2], [0,2], [1,2], [0,1,2]
         ];
 
         let state = [0,0,0];
+        let targetBits = null;
+        let initialSwitchState = null;
+        let flipsUsed = 0;
+
+        function currentBulbString() {
+            return `${state[2]}${state[1]}${state[0]}`;
+        }
+
+        function checkSuccess() {
+            if (!targetBits) return;
+            const current = currentBulbString();
+            successMsg.classList.add('hidden');
+            alreadyMsg.classList.add('hidden');
+            targetSecretEl.classList.remove('matched');
+            if (current === targetBits) {
+                targetSecretEl.classList.add('matched');
+                if (flipsUsed === 0) {
+                    alreadyMsg.classList.remove('hidden');
+                } else {
+                    successMsg.textContent = flipsUsed === 1
+                        ? '✓ encoded — 1 bit changed'
+                        : `✓ matched — but ${flipsUsed} bits changed (hint: it's always possible in one)`;
+                    successMsg.classList.remove('hidden');
+                }
+            }
+        }
 
         function updateBulbs() {
             bulbEls.forEach((b, i) => {
@@ -541,7 +631,7 @@
                 b.svg.classList.toggle('on', on);
                 b.val.textContent = state[i];
             });
-            bulbsStateEl.textContent = `${state[2]}${state[1]}${state[0]}`;
+            bulbsStateEl.textContent = currentBulbString();
         }
 
         function updateSwitches() {
@@ -553,26 +643,43 @@
         switchEls.forEach((sw, idx) => {
             sw.addEventListener('change', () => {
                 switchToBulbs[idx].forEach(b => { state[b] ^= 1; });
+                if (initialSwitchState !== null) {
+                    flipsUsed = switchEls.filter((s, i) => s.checked !== initialSwitchState[i]).length;
+                }
                 updateBulbs();
                 updateSwitches();
+                checkSuccess();
             });
         });
 
         document.getElementById('resetBtn').addEventListener('click', () => {
             state = [0,0,0];
+            targetBits = null;
+            flipsUsed = 0;
+            initialSwitchState = null;
             switchEls.forEach(s => s.checked = false);
+            successMsg.classList.add('hidden');
+            alreadyMsg.classList.add('hidden');
+            targetSecretEl.textContent = '---';
+            targetSecretEl.classList.remove('matched');
             updateBulbs();
             updateSwitches();
         });
 
         document.getElementById('loadNextDataBtn').addEventListener('click', () => {
-            const target = Math.floor(Math.random() * 8).toString(2).padStart(3,'0');
-            targetSecretEl.textContent = target;
+            targetBits = Math.floor(Math.random() * 7 + 1).toString(2).padStart(3,'0');
+            targetSecretEl.textContent = targetBits;
+            targetSecretEl.classList.remove('matched');
+            successMsg.classList.add('hidden');
+            alreadyMsg.classList.add('hidden');
             state = [0,0,0];
             switchEls.forEach(s => s.checked = false);
             switchEls.forEach((s, i) => { s.checked = Math.random() < 0.5; });
             applySwitches();
+            initialSwitchState = switchEls.map(s => s.checked);
+            flipsUsed = 0;
             updateSwitches();
+            checkSuccess();
         });
 
         function applySwitches() {
