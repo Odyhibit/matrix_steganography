@@ -192,9 +192,19 @@ function buildHeaderBits(mode, bitsPerSymbol, byteLength = 0) {
   return bits;
 }
 
+function sanitizeAscii(text) {
+  return text.replace(/[^\x00-\x7F]/g, ch => {
+    if (ch === '\u2014' || ch === '\u2013') return '--';
+    if (ch === '\u2018' || ch === '\u2019') return "'";
+    if (ch === '\u201C' || ch === '\u201D') return '"';
+    if (ch === '\u2026') return '...';
+    return '';
+  });
+}
+
 function buildTextPayloadBits(text) {
   const bits = buildHeaderBits(MODE.TEXT, TEXT_BITS_PER_SYMBOL);
-  bits.push(...stringToBits(text, TEXT_BITS_PER_SYMBOL));
+  bits.push(...stringToBits(sanitizeAscii(text), TEXT_BITS_PER_SYMBOL));
   bits.push(...Array(TEXT_BITS_PER_SYMBOL).fill(0));
   return bits;
 }
@@ -380,6 +390,7 @@ async function embedMessage() {
   const progressBar = document.getElementById('embedProgress');
   progressBar.style.width = '10%';
   progressBar.textContent = '10%';
+  await new Promise(r => setTimeout(r, 0));
 
   try {
     const imgData = await getImageData(coverImg);
@@ -410,6 +421,7 @@ async function embedMessage() {
 
     progressBar.style.width = '35%';
     progressBar.textContent = '35%';
+    await new Promise(r => setTimeout(r, 0));
 
     const numBlocks = Math.ceil(payloadBits.length / bitsPerBlock);
     for (let blockIdx = 0; blockIdx < numBlocks; blockIdx++) {
@@ -437,6 +449,7 @@ async function embedMessage() {
 
     progressBar.style.width = '80%';
     progressBar.textContent = '80%';
+    await new Promise(r => setTimeout(r, 0));
 
     let lsbIndex = 0;
     const modifiedData = new Uint8ClampedArray(data.length);
@@ -523,6 +536,7 @@ async function extractMessage() {
   const progressBar = document.getElementById('extractProgress');
   progressBar.style.width = '10%';
   progressBar.textContent = '10%';
+  await new Promise(r => setTimeout(r, 0));
 
   const textOutput = document.getElementById('extractedText');
   const binaryResult = document.getElementById('binaryResult');
@@ -549,6 +563,7 @@ async function extractMessage() {
 
     progressBar.style.width = '45%';
     progressBar.textContent = '45%';
+    await new Promise(r => setTimeout(r, 0));
 
     const unstegoBits = [];
     const numBlocks = Math.floor(stegoBits.length / blockSize);
@@ -710,3 +725,18 @@ document.getElementById('embedBtn').addEventListener('click', embedMessage);
 document.getElementById('extractBtn').addEventListener('click', extractMessage);
 document.getElementById('compareBtn').addEventListener('click', compareImages);
 document.getElementById('maxBlockSizeBtn').addEventListener('click', calculateMaxBlockSize);
+
+// Live ASCII sanitization on the message textarea
+const embedText = document.getElementById('embedText');
+embedText.addEventListener('input', () => {
+  const raw = embedText.value;
+  const clean = sanitizeAscii(raw);
+  if (clean !== raw) {
+    const pos = embedText.selectionStart - (raw.length - clean.length);
+    embedText.value = clean;
+    embedText.setSelectionRange(pos, pos);
+    const status = document.getElementById('embedStatus');
+    status.textContent = 'non-ASCII characters were substituted or removed';
+    status.className = 'status-msg';
+  }
+});
