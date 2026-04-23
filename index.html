@@ -3,25 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neo Hide - Web Steganography Tool</title>
+    <title>Neo Hide — Matrix Steganography</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Neo Hide - Web Steganography Tool</h1>
 
-        <div class="tabs outline">
-            <button class="tab active" onclick="openTab(event, 'embedTab')">Embed Message</button>
-            <button class="tab" onclick="openTab(event, 'extractTab')">Extract Message</button>
-            <button class="tab" onclick="openTab(event, 'compareTab')">Compare Images</button>
+        <div class="site-header">
+            <div class="logo-mark">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="3" width="4" height="4" rx="1" fill="#63b3ed"/>
+                    <rect x="10" y="3" width="4" height="4" rx="1" fill="#63b3ed" opacity="0.5"/>
+                    <rect x="17" y="3" width="4" height="4" rx="1" fill="#63b3ed"/>
+                    <rect x="3" y="10" width="4" height="4" rx="1" fill="#63b3ed" opacity="0.3"/>
+                    <rect x="10" y="10" width="4" height="4" rx="1" fill="#68d391"/>
+                    <rect x="17" y="10" width="4" height="4" rx="1" fill="#63b3ed" opacity="0.5"/>
+                    <rect x="3" y="17" width="4" height="4" rx="1" fill="#63b3ed"/>
+                    <rect x="10" y="17" width="4" height="4" rx="1" fill="#63b3ed" opacity="0.3"/>
+                    <rect x="17" y="17" width="4" height="4" rx="1" fill="#63b3ed" opacity="0.7"/>
+                </svg>
+            </div>
+            <div>
+                <h1>Neo Hide</h1>
+                <p>matrix steganography · hamming-based LSB encoding</p>
+            </div>
+            <div style="margin-left:auto;">
+                <a href="explanation.html" style="font-size:0.75rem; opacity:0.6;">how it works →</a>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="openTab(event, 'embedTab')">embed</button>
+            <button class="tab" onclick="openTab(event, 'extractTab')">extract</button>
+            <button class="tab" onclick="openTab(event, 'compareTab')">compare</button>
         </div>
 
         <!-- Embed Tab -->
-
         <div id="embedTab" class="tab-content active">
 
             <div class="form-group">
-                <label for="coverImage">Cover Image:</label>
+                <label for="coverImage">Cover Image</label>
                 <input type="file" id="coverImage" accept="image/*">
                 <div class="preview-container">
                     <img id="coverPreview" class="hidden">
@@ -29,17 +50,23 @@
             </div>
 
             <div class="form-group">
-                <label for="embedText">Message to Hide:</label>
-                <textarea id="embedText" rows="2" placeholder="Enter text to hide"></textarea>
+                <label for="embedText">Secret Message</label>
+                <textarea id="embedText" rows="3" placeholder="Enter the text to hide…"></textarea>
             </div>
 
-
-
             <div class="form-group">
-                <label for="bitsPerBlock">Bits per Block:</label>
-                <input type="number" id="bitsPerBlock" value="7" min="1" max="24">
-                <label><input type="checkbox" id="highCapacityEmbed"> High capacity (RGB, 7 bits/channel)</label>
-                <button id="maxBlockSizeBtn" type="button">Use Maximum Block Size</button>
+                <label>Encoding Options</label>
+                <div class="controls-row">
+                    <div>
+                        <div style="font-family:var(--mono);font-size:0.72rem;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.06em;">BITS PER BLOCK</div>
+                        <input type="number" id="bitsPerBlock" value="7" min="1" max="24">
+                    </div>
+                    <button id="maxBlockSizeBtn" type="button" style="align-self:flex-end;">max block</button>
+                </div>
+                <label class="checkbox-row" style="margin-top:12px;">
+                    <input type="checkbox" id="highCapacityEmbed">
+                    <span>High capacity mode <span class="capacity-badge">RGB · 7 bits/channel</span></span>
+                </label>
             </div>
 
             <button id="embedBtn" type="button">Embed Message</button>
@@ -50,20 +77,18 @@
 
             <div class="result-container hidden" id="embedResult">
                 <h3>Steganographic Image</h3>
-                <p id="embedMessage"></p>
+                <p id="embedMessage" style="font-family:var(--mono);font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;"></p>
                 <div class="preview-container">
                     <img id="stegoPreview">
                 </div>
-                <button id="downloadStegoBtn" type="button">Download Image</button>
+                <button id="downloadStegoBtn" type="button" style="margin-top:1rem;">Download Image</button>
             </div>
         </div>
-        <div class="link">
-            <a href="explanation.html">Explanation of how it works.</a>
-        </div>
+
         <!-- Extract Tab -->
         <div id="extractTab" class="tab-content">
             <div class="form-group">
-                <label for="stegoImage">Stego Image:</label>
+                <label for="stegoImage">Stego Image</label>
                 <input type="file" id="stegoImage" accept="image/*">
                 <div class="preview-container">
                     <img id="stegoExtractPreview" class="hidden">
@@ -71,9 +96,17 @@
             </div>
 
             <div class="form-group">
-                <label for="extractBitsPerBlock">Bits per Block:</label>
-                <input type="number" id="extractBitsPerBlock" value="7" min="1" max="24">
-                <label><input type="checkbox" id="highCapacityExtract"> High capacity (RGB, 7 bits/channel)</label>
+                <label>Encoding Options</label>
+                <div class="controls-row">
+                    <div>
+                        <div style="font-family:var(--mono);font-size:0.72rem;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.06em;">BITS PER BLOCK</div>
+                        <input type="number" id="extractBitsPerBlock" value="7" min="1" max="24">
+                    </div>
+                </div>
+                <label class="checkbox-row" style="margin-top:12px;">
+                    <input type="checkbox" id="highCapacityExtract">
+                    <span>High capacity mode <span class="capacity-badge">RGB · 7 bits/channel</span></span>
+                </label>
             </div>
 
             <button id="extractBtn" type="button">Extract Message</button>
@@ -84,11 +117,11 @@
 
             <div class="result-container hidden" id="extractResult">
                 <h3>Extracted Message</h3>
-                <textarea id="extractedText" rows="5" readonly></textarea>
+                <textarea id="extractedText" rows="5" readonly style="margin-top:0.5rem;"></textarea>
                 <div id="binaryResult" class="hidden">
-                    <p id="binaryDetails"></p>
+                    <p id="binaryDetails" style="font-family:var(--mono);font-size:0.78rem;color:var(--text-muted);margin:0.75rem 0;"></p>
                     <button id="downloadBinaryBtn" type="button">Download Payload</button>
-                    <label for="binaryBase64">Base64 Preview:</label>
+                    <label style="margin-top:1rem;">Base64 Preview</label>
                     <textarea id="binaryBase64" rows="4" readonly></textarea>
                 </div>
             </div>
@@ -97,7 +130,7 @@
         <!-- Compare Tab -->
         <div id="compareTab" class="tab-content">
             <div class="form-group">
-                <label for="image1">First Image:</label>
+                <label for="image1">Original Image</label>
                 <input type="file" id="image1" accept="image/*">
                 <div class="preview-container">
                     <img id="image1Preview" class="hidden">
@@ -105,7 +138,7 @@
             </div>
 
             <div class="form-group">
-                <label for="image2">Second Image:</label>
+                <label for="image2">Stego Image</label>
                 <input type="file" id="image2" accept="image/*">
                 <div class="preview-container">
                     <img id="image2Preview" class="hidden">
@@ -116,6 +149,7 @@
 
             <div id="compareResult" class="hidden"></div>
         </div>
+
     </div>
 
     <script src="matrix_stego.js"></script>
